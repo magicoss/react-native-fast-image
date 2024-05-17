@@ -1,17 +1,29 @@
 name: ci
-on: [push, pull_request]
+
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - 'docs/**'
+      - '**.md'
+  pull_request:
+    branches: [main]
+    paths-ignore:
+      - 'docs/**'
+      - '**.md'
+
 jobs:
-  build:
+  unit_test:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [16.x]
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v2
+        with:
+          node-version: ${{ matrix.node-version }}
       - run: yarn --frozen-lockfile
       - run: yarn build
       - run: yarn test --coverage
-      - if: github.event.repository.fork == false && github.event_name != 'pull_request'
-        run: yarn dv-scripts ci
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-      - uses: codecov/codecov-action@v2
+      - run: yarn lint
