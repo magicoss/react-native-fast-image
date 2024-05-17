@@ -1,17 +1,30 @@
 name: deploy_npm
+
 on:
   release:
     types: [published]
+
 jobs:
   build:
     environment: publish
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout
         uses: actions/checkout@v2
-      - uses: actions/setup-node@v2
-      - run: yarn --frozen-lockfile
-      - run: yarn build
-      - run: npm publish --access public
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v2
+        with:
+          registry-url: 'https://registry.npmjs.org'
+          
+      - name: Install Dependencies
+        run: yarn --frozen-lockfile
+
+      - name: Build
+        run: yarn build
+
+      - name: Publish to npm
+        run: npm publish --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
